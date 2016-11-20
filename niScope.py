@@ -12,17 +12,22 @@ import ctypes.util
 import warnings
 from niScopeTypes import *
 from niScopeTypes import ViInt32
+import platform
 
+arch = platform.architecture()[0]
 
-libname = 'niScope_32'
+if arch.startswith('64'):
+    libname = 'niScope_64'
+else:
+    libname = 'niScope_32'
 #    include_niScope_h = os.environ['NIIVIPATH']+'Include\\niScope.h'
 lib = util.find_library(libname)
 if lib is None:
 	if os.name=='posix':
-		print 'libniScope_32.so not found, is NI-SCOPE installed?'
+		print libname + '.so not found, is NI-SCOPE installed?'
         raise ImportError
 	if os.name=='nt':
-		print 'niScope.dll not found'
+		print libname + '.dll not found'
         raise ImportError
 if os.name=='posix':
 	libniScope = ctypes.cdll.LoadLibrary(lib)
@@ -568,7 +573,7 @@ single record acquisition.
 	def error_message (self,errorCode):
 		IVI_MAX_MESSAGE_LEN      = 255
 
-class Acquisition:
+class Acquisition(object):
 	def __iter__(self):
 		class iterator:
 			def __iter__(self):
