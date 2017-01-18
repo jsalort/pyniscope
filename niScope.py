@@ -115,7 +115,76 @@ class Scope(ViSession):
 				ViReal64(impedance),
 				ViReal64(maxFrequency))
 		return status
-		
+
+	def ConfigureClock(self, inputClockSource, outputClockSource, clockSyncPulseSource, masterEnabled):
+                """
+                Configures the attributes for synchronizing the digitizer to a reference
+                or sending the digitizer's reference clock output to be used as a
+                synchronizing clock for other digitizers.
+
+                Input clock source
+                ==================
+                
+                    'VAL_NO_SOURCE'
+                    'VAL_PFI_1'
+                    'VAL_PFI_2'
+                    'VAL_EXTERNAL'
+                    'VAL_CLK_IN'
+                    'VAL_PXI_CLOCK'
+                    'VAL_RTSI_CLOCK'
+
+                Output clock source
+                ===================
+                
+                    'VAL_NO_SOURCE'
+                    'VAL_RTSI_CLOCK'
+                    'VAL_PFI_0'
+                    'VAL_PFI_1'
+                    'VAL_PFI_2'
+                    'VAL_CLK_OUT'
+
+                Sync pulse source
+                =================
+                
+                    For the NI 5102, specifies the line on which the
+                    sample clock is sent or received. For the NI 5112/5620/5621/5911,
+                    specifies the line on which the one-time sync pulse is sent or
+                    received. This line should be the same for all devices to be
+                    synchronized.
+                    
+                Possible values:
+                    'VAL_NO_SOURCE'
+                    'VAL_RTSI_0'
+                    'VAL_RTSI_1'
+                    'VAL_RTSI_2'
+                    'VAL_RTSI_3'
+                    'VAL_RTSI_4'
+                    'VAL_RTSI_5'
+                    'VAL_RTSI_6'
+                    'VAL_PFI_1'
+                    'VAL_PFI_2'
+                    
+                
+                """
+                if inputClockSource not in ('VAL_NO_SOURCE', 'VAL_PFI_1', 'VAL_PFI_2',
+                                            'VAL_EXTERNAL', 'VAL_CLK_IN', 'VAL_PXI_CLOCK',
+                                            'VAL_RTSI_CLOCK'):
+                    raise ValueError('Wrong input clock source.')
+                if outputClockSource not in ('VAL_NO_SOURCE', 'VAL_RTSI_CLOCK', 'VAL_PFI_0',
+                                             'VAL_PFI_1', 'VAL_PFI_2', 'VAL_CLK_OUT'):
+                    raise ValueError('Wrong output clock source.')
+                if clockSyncPulseSource not in ('VAL_NO_SOURCE', 'VAL_RTSI_0', 'VAL_RTSI_1',
+                                                'VAL_RTSI_2', 'VAL_RTSI_3', 'VAL_RTSI_4',
+                                                'VAL_RTSI_5', 'VAL_RTSI_6', 'VAL_PFI_1',
+                                                'VAL_PFI_2'):
+                    raise ValueError('Wrong sync pulse source.')
+                status = self.CALL("ConfigureClock", self,
+                                   ViConstString(inputClockSource),
+                                   ViConstString(outputClockSource),
+                                   ViConstString(clockSyncPulseSource),
+                                   ViBoolean(masterEnabled))
+                return status
+                                   
 	def ConfigureVertical(self,
 		channelList="0",
 		voltageRange=10,
