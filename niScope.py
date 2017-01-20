@@ -484,13 +484,23 @@ no longer want to export and set outputTerminal to NISCOPE_VAL_NONE.
         State caching is enabled and the currently cached value is inva
         lid or is different than the value you specify.
         """
-        attrType = {    float:ViReal64,
-                int:ViInt32,
-                long:ViInt32,
-                bool:ViBoolean,
-                Scope:ViSession,
-                str:ViString,
-                } [type(value)]
+        if six.PY2:
+            attrType = {    float:ViReal64,
+                    int:ViInt32,
+                    long:ViInt32,
+                    bool:ViBoolean,
+                    Scope:ViSession,
+                    str:ViString,
+                    } [type(value)]
+        else:
+            attrType = {    float:ViReal64,
+                    int:ViInt32,
+                    bool:ViBoolean,
+                    Scope:ViSession,
+                    bytes:ViString,
+                    } [type(value)]
+            if isinstance(channelList, str):
+                channelList = channelList.encode('ascii')
         status = self.CALL("SetAttribute"+attrType.__name__,
                 self,
                 ViConstString(channelList),
@@ -655,9 +665,8 @@ single record acquisition.
     def ActualSamplingRate(self):
         return self.GetAttribute(NISCOPE_ATTR_HORZ_SAMPLE_RATE,ViReal64)
 
-    @property
-    def ActualVoltageRange(self):
-        return self.GetAttribute(NISCOPE_ATTR_VERTICAL_RANGE, ViReal64)
+    def ActualVoltageRange(self, channelList):
+        return self.GetAttribute(NISCOPE_ATTR_VERTICAL_RANGE, ViReal64, channelList=channelList)
 
     @property
     def OnboardMemory(self):
