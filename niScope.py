@@ -16,6 +16,7 @@ from ctypes import create_string_buffer,byref,util
 import ctypes
 import ctypes.util
 import warnings
+
 if six.PY2:
     from niScopeTypes import *
     from niScopeTypes import ViInt32
@@ -550,13 +551,26 @@ no longer want to export and set outputTerminal to NISCOPE_VAL_NONE.
         wfmInfoArray = wfmInfo*numAcquiredWaveforms
         self.info = wfmInfoArray()
         
-        status = self.CALL("Fetch"+data_type,self,
-            ViConstString(channelList),
-            ViReal64(timeout),
-            ViInt32(samplesPerRecord),
-            buf.ctypes.data,
-            byref(self.info)
-            )
+        # Enclosing CALL into try except because the exception
+        # that is likely to be raised is overflow warnings.
+        # Without the try-except, no data will be returned at all.
+        try:
+            status = self.CALL("Fetch"+data_type,self,
+                               ViConstString(channelList),
+                               ViReal64(timeout),
+                               ViInt32(samplesPerRecord),
+                               buf.ctypes.data,
+                               byref(self.info)
+                               )
+        except Exception as e:
+            message = e.args[0]
+            if six.PY3:
+                message = message.decode('ascii')
+            if message.startswith('Warning'):
+                warnings.warn(message)
+            else:
+                raise
+
         return buf
 
     @property
@@ -640,6 +654,14 @@ single record acquisition.
     @property
     def ActualSamplingRate(self):
         return self.GetAttribute(NISCOPE_ATTR_HORZ_SAMPLE_RATE,ViReal64)
+
+    @property
+    def ActualVoltageRange(self):
+        return self.GetAttribute(NISCOPE_ATTR_VERTICAL_RANGE, ViReal64)
+
+    @property
+    def OnboardMemory(self):
+        return self.GetAttribute(NISCOPE_ATTR_ONBOARD_MEMORY_SIZE, ViInt32)
 
     def read(self):
         self.ConfigureHorizontalTiming()
