@@ -10,7 +10,7 @@ else:
 import os
 import sys
 import textwrap
-import numpy 
+import numpy
 from numpy import ctypeslib,zeros,float64
 from ctypes import create_string_buffer,byref,util
 import ctypes
@@ -45,6 +45,10 @@ if os.name=='posix':
 if os.name=='nt':
     libniScope = ctypes.windll.LoadLibrary(lib)
         
+
+class ScopeException(Exception):
+    pass
+
 class Scope(ViSession):
         
     def CALL(self,name, *args):
@@ -70,7 +74,7 @@ class Scope(ViSession):
         status = func(*new_args)
         if status is not 0:
             message = self.errorHandler(status)
-            raise Exception(message)
+            raise ScopeException(message)
         return status
         
     def __init__(self,resourceName="Dev1",IDQuery=False,resetDevice=False):
